@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2019
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commander", "Commander\Commander.csproj", "{A95701B3-158C-4FAE-AEF7-48D2D2923589}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Commander", "Commander\Commander.csproj", "{A95701B3-158C-4FAE-AEF7-48D2D2923589}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Contracts\Contracts.csproj", "{DC7CE33D-2DC0-4FE7-9046-B8111503502B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contracts", "Contracts\Contracts.csproj", "{DC7CE33D-2DC0-4FE7-9046-B8111503502B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriber", "Subscriber\Subscriber.csproj", "{3B58C9CB-D34D-4A90-B6A7-A0886598CC80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriber", "Subscriber\Subscriber.csproj", "{3B58C9CB-D34D-4A90-B6A7-A0886598CC80}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01_SendCommand", "01_SendCommand", "{9F6D8642-3AE1-4329-B22B-C250C14B3F03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +32,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A95701B3-158C-4FAE-AEF7-48D2D2923589} = {9F6D8642-3AE1-4329-B22B-C250C14B3F03}
+		{DC7CE33D-2DC0-4FE7-9046-B8111503502B} = {9F6D8642-3AE1-4329-B22B-C250C14B3F03}
+		{3B58C9CB-D34D-4A90-B6A7-A0886598CC80} = {9F6D8642-3AE1-4329-B22B-C250C14B3F03}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {64EE73CA-0FE4-4B20-BAEC-E59FBB753E1A}
