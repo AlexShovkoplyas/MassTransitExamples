@@ -1,0 +1,12 @@
+﻿type project
+authors
+	Alexey Zimarev
+	Chris Patterson
+	Dru Sellers
+	Travis Smith
+owner alexey_zimarev
+description
+	RavenDb Saga persistence for MassTransit
+licenseUrl https://github.com/alexeyzimarev/MassTransit.RavenDbIntegration/blob/master/LICENSE
+projectUrl https://github.com/alexeyzimarev/MassTransit.RavenDbIntegration
+tags MassTransit RavenDb

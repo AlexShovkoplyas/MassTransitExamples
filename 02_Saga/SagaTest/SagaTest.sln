@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2047
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Processor", "Processor\Processor.csproj", "{1713F1BD-5633-428A-AF95-6B5F1693E8C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{1398234C-F257-48CC-AC7F-718C67C16D93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Contracts\Contracts.csproj", "{E35DBE06-342E-44C3-9403-DFCE1D32390A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1713F1BD-5633-428A-AF95-6B5F1693E8C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1713F1BD-5633-428A-AF95-6B5F1693E8C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1713F1BD-5633-428A-AF95-6B5F1693E8C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1713F1BD-5633-428A-AF95-6B5F1693E8C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1398234C-F257-48CC-AC7F-718C67C16D93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1398234C-F257-48CC-AC7F-718C67C16D93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1398234C-F257-48CC-AC7F-718C67C16D93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1398234C-F257-48CC-AC7F-718C67C16D93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E35DBE06-342E-44C3-9403-DFCE1D32390A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E35DBE06-342E-44C3-9403-DFCE1D32390A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E35DBE06-342E-44C3-9403-DFCE1D32390A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E35DBE06-342E-44C3-9403-DFCE1D32390A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D0948D33-EEE5-49EB-BB5C-89ACA8EF180D}
+	EndGlobalSection
+EndGlobal
