@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Processor
 {
-    class TransferState : SagaStateMachineInstance
+    public class TransferState : SagaStateMachineInstance
     {
         protected TransferState()
         {
@@ -27,6 +27,12 @@ namespace Processor
         public int Amount { get; set; }
 
         public string ConfirmationCode { get; set; }
+
+        public bool isConfirmed { get; set; }
+
+        public bool isCanceled { get; set; }
+
+        public bool isExpired { get; set; }
 
         public Guid? ExpirationId { get; set; }
 

@@ -1,20 +1,22 @@
 ﻿using Automatonymous;
+using Automatonymous.Binders;
 using Contracts;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Processor
 {
-    class TransferStateMachine : MassTransitStateMachine<TransferState>
+    public class TransferStateMachine : MassTransitStateMachine<TransferState>
     {
         public TransferStateMachine()
         {
-            InstanceState(x => x.CurrentState, Active, Finished);
+            InstanceState(x => x.CurrentState);
 
             Event(() => Opened, x => x.SelectId(context => Guid.NewGuid()));
-            Event(() => Confirmed, x => x.CorrelateById(context => context.Message.TransactionId));
+            Event(() => ConfirmationRequested, x => x.CorrelateById(context => context.Message.TransactionId));
             Event(() => Canceled, x => x.CorrelateById(context => context.Message.TransactionId));
 
             Schedule(() => TransactionExpired, x => x.ExpirationId, x =>
@@ -25,83 +27,103 @@ namespace Processor
 
             Initially(
                 When(Opened)
-                    .Then(context =>
-                    {
-                        context.Instance.AccountIdFrom = context.Data.AccountIdFrom;
-                        context.Instance.AccountIdTo = context.Data.AccountIdTo;
-                        context.Instance.Amount = context.Data.Amount;
-
-                        context.Instance.Created = DateTime.Now;
-
-                        context.Instance.ConfirmationCode = "1111";
-                    })
-                    .ThenAsync(async context =>
-                    {
-                        //send confirmation request
-                        await context.Publish(new TransactionConfirmationRequested()
-                        {
-                            TransactionId = context.Instance.CorrelationId
-                        });
-
-                        await Console.Out.WriteLineAsync($"Money Transfer requested {context.Data.AccountIdFrom} to {context.Data.AccountIdTo}");
-                        await Console.Out.WriteLineAsync($"Money Transfer requested correlationId: {context.Instance.CorrelationId}");
-                    })
-                    .Schedule(TransactionExpired, context => new TransactionExpiredEvent(context.Instance))
-                    .TransitionTo(Active)
+                    .Then(InitializeState)
+                    .Then(SetConfirmationCode)
+                    .Publish(ConfirmationRequestedFactory)
+                    .Schedule(TransactionExpired, TransactionExpiredFactory)
+                    .TransitionTo(Pending)
                 );
 
-            During(Active,
-                When(Confirmed)
-                    .ThenAsync(async context =>
-                    {
-                        //todo: check if code is correct
-                        await Task.Delay(TimeSpan.FromSeconds(1));
-                    })
-                    .ThenAsync(context => Console.Out.WriteLineAsync($"Transaction Finished: {context.Instance.CorrelationId}"))
-                    .TransitionTo(Finished),
+            During(Pending,
+                When(ConfirmationRequested)
+                    .Then(ValidateConfirmationCode)
+                    .Then(context => SaveLog(context.Instance))
+                    .Finalize(),
                 When(Canceled)
-                    .ThenAsync(context => Console.Out.WriteLineAsync($"Transaction Finished: {context.Instance.CorrelationId}"))
-                    .TransitionTo(Finished),
+                    .Then(CancelThisTransaction)
+                    .Then(context => SaveLog(context.Instance))
+                    .Finalize(),
                 When(TransactionExpired.Received)
-                    .ThenAsync(context => Console.Out.WriteLineAsync($"Transaction Expired: {context.Instance.CorrelationId}"))
-                    .Publish(context => new TransactionExpiredEvent(context.Instance))
+                    .Then(ExpireTransaction)
+                    .Then(context => SaveLog(context.Instance))
                     .Finalize()
                 );
 
             SetCompletedWhenFinalized();
         }
 
-        public State Active { get; private set; }
-        public State Finished { get; private set; }
+        public State Pending { get; private set; }
+        //public State Approved { get; private set; }
+        //public State Finished { get; private set; }
 
         public Schedule<TransferState, TransactionExpired> TransactionExpired { get; private set; }
 
         public Event<TransferMoney> Opened { get; private set; }
         public Event<CancelTransaction> Canceled { get; private set; }
-        public Event<ConfirmTransaction> Confirmed { get; private set; }
+        public Event<ConfirmTransaction> ConfirmationRequested { get; private set; }
 
-        class TransactionExpiredEvent : TransactionExpired
+        private void InitializeState(BehaviorContext<TransferState, TransferMoney> context)
         {
-            readonly TransferState state;
-
-            public TransactionExpiredEvent(TransferState state)
-            {
-                this.state = state;
-            }
-
-            public Guid TransactionId => state.CorrelationId;
+            context.Instance.AccountIdFrom = context.Data.AccountIdFrom;
+            context.Instance.AccountIdTo = context.Data.AccountIdTo;
+            context.Instance.Amount = context.Data.Amount;
+            context.Instance.Created = DateTime.Now;
         }
 
-        class TransactionCanceledEvent : TransactionCanceled
+        private void SetConfirmationCode(BehaviorContext<TransferState, TransferMoney> context)
         {
-            readonly TransferState state;
+            Thread.Sleep(50);
+            context.Instance.ConfirmationCode = "1111";
+        }
 
-            public TransactionCanceledEvent(TransferState state)
+        private TransactionConfirmationRequested ConfirmationRequestedFactory(ConsumeEventContext<TransferState, TransferMoney> context)
+        {
+            Console.WriteLine("Code confirmation was requested");
+            return new TransactionConfirmationRequested
             {
-                this.state = state;
-            }
+                TransactionId = context.Instance.CorrelationId
+            };
+        }
 
-            public Guid TransactionId => state.CorrelationId;
+        private TransactionExpired TransactionExpiredFactory(ConsumeEventContext<TransferState, TransferMoney> context)
+        {
+            Console.WriteLine("Transaction expiretion was scheduled");
+            return new TransactionExpired
+            {
+                TransactionId = context.Instance.CorrelationId
+            };
+        }
+
+        private void ValidateConfirmationCode(BehaviorContext<TransferState, ConfirmTransaction> context)
+        {
+            if (context.Instance.ConfirmationCode == context.Data.Code)
+            {
+                Console.WriteLine("Code is confirmed");
+                context.Instance.isConfirmed = true;
+            }
+            else
+            {
+                Console.WriteLine("Code is wrong");
+                context.Instance.isConfirmed = false;
+            }
+        }
+
+        private void CancelThisTransaction(BehaviorContext<TransferState, CancelTransaction> context)
+        {
+            Console.WriteLine("Transaction is canceled");
+            context.Instance.isCanceled = true;
+        }
+
+        private void ExpireTransaction(BehaviorContext<TransferState, TransactionExpired> context)
+        {
+            Console.WriteLine("Transaction was expired");
+            context.Instance.isExpired = true;
+        }
+
+        private void SaveLog(TransferState state)
+        {
+            Thread.Sleep(50);
+            Console.WriteLine("Saving log...");
         }
     }    
 }

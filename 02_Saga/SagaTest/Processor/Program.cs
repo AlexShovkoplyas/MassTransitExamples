@@ -48,6 +48,7 @@ namespace Processor
                 //{
                 //    cfg.StateMachineSaga(machine, repository);
                 //});
+
                 x.ReceiveEndpoint("sample-quartz-scheduler", cfg =>
                 {
                     x.UseMessageScheduler(cfg.InputAddress);

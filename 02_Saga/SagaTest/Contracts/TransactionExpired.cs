@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Contracts
 {
-    public interface TransactionExpired
+    public class TransactionExpired
     {
-        Guid TransactionId { get; }
+        public Guid TransactionId { get; set; }
     }
 }
