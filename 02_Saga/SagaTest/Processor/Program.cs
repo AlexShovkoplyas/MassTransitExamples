@@ -44,10 +44,10 @@ namespace Processor
                 {
                     cfg.StateMachineSaga(machine, repository);
                 });
-                //x.ReceiveEndpoint(CONFIRMATION_QUEUE_NAME, cfg =>
-                //{
-                //    cfg.StateMachineSaga(machine, repository);
-                //});
+                x.ReceiveEndpoint(CONFIRMATION_QUEUE_NAME, cfg =>
+                {
+                    cfg.StateMachineSaga(machine, repository);
+                });
 
                 x.ReceiveEndpoint("sample-quartz-scheduler", cfg =>
                 {
@@ -59,7 +59,11 @@ namespace Processor
             });            
 
             await bus.StartAsync();
-            
+
+            scheduler.JobFactory = new MassTransitJobFactory(bus);
+
+            await scheduler.Start();
+
             return bus;
         }
 
