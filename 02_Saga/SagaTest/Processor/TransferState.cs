@@ -28,11 +28,9 @@ namespace Processor
 
         public string ConfirmationCode { get; set; }
 
-        public bool isConfirmed { get; set; }
-
-        public bool isCanceled { get; set; }
-
-        public bool isExpired { get; set; }
+        //public bool isConfirmed { get; set; }
+        //public bool isCanceled { get; set; }
+        //public bool isExpired { get; set; }
 
         public Guid? ExpirationId { get; set; }
 

@@ -22,15 +22,16 @@ namespace Processor
             var machine = new TransferStateMachine();
             var repository = new InMemorySagaRepository<TransferState>();
 
-            var scheduler = await CreateSchedulerAsync();
+            //var scheduler = await CreateSchedulerAsync();
 
-            var bus = await CreateBusAsync(machine, repository, scheduler);
+            var bus = await CreateBusAsync(machine, repository);
+            //var bus = await CreateBusAsync(machine, repository, scheduler);
 
             Console.WriteLine("Saga consumer is started...");
             Console.ReadLine();
         }
 
-        static async Task<IBusControl> CreateBusAsync<T>(MassTransitStateMachine<T> machine, ISagaRepository<T> repository, IScheduler scheduler) 
+        static async Task<IBusControl> CreateBusAsync<T>(MassTransitStateMachine<T> machine, ISagaRepository<T> repository) 
             where T: class, SagaStateMachineInstance
         {
             var bus = Bus.Factory.CreateUsingRabbitMq(x => 
@@ -49,20 +50,20 @@ namespace Processor
                     cfg.StateMachineSaga(machine, repository);
                 });
 
-                x.ReceiveEndpoint("sample-quartz-scheduler", cfg =>
-                {
-                    x.UseMessageScheduler(cfg.InputAddress);
+                //x.ReceiveEndpoint("sample-quartz-scheduler", cfg =>
+                //{
+                //    x.UseMessageScheduler(cfg.InputAddress);
 
-                    cfg.Consumer(() => new ScheduleMessageConsumer(scheduler));
-                    cfg.Consumer(() => new CancelScheduledMessageConsumer(scheduler));
-                });
+                //    cfg.Consumer(() => new ScheduleMessageConsumer(scheduler));
+                //    cfg.Consumer(() => new CancelScheduledMessageConsumer(scheduler));
+                //});
             });            
 
             await bus.StartAsync();
 
-            scheduler.JobFactory = new MassTransitJobFactory(bus);
+            //scheduler.JobFactory = new MassTransitJobFactory(bus);
 
-            await scheduler.Start();
+            //await scheduler.Start();
 
             return bus;
         }

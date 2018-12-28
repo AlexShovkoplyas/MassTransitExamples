@@ -15,52 +15,54 @@ namespace Processor
         {
             InstanceState(x => x.CurrentState);
 
-            Event(() => Opened, x => x.SelectId(context => Guid.NewGuid()));
-            Event(() => ConfirmationRequested, x => x.CorrelateById(context => context.Message.TransactionId));
-            Event(() => Canceled, x => x.CorrelateById(context => context.Message.TransactionId));
+            Event(() => Open, x => x.SelectId(context => Guid.NewGuid()));
+            Event(() => AttemptToConfirm, x => x.CorrelateById(context => context.Message.TransactionId));
+            Event(() => Cancel, x => x.CorrelateById(context => context.Message.TransactionId));
 
-            Schedule(() => TransactionExpired, x => x.ExpirationId, x =>
-            {
-                x.Delay = TimeSpan.FromSeconds(10);
-                x.Received = e => e.CorrelateById(context => context.Message.TransactionId);
-            });
+            //Schedule(() => TransactionExpired, x => x.ExpirationId, x =>
+            //{
+            //    x.Delay = TimeSpan.FromSeconds(10);
+            //    x.Received = e => e.CorrelateById(context => context.Message.TransactionId);
+            //});
 
             Initially(
-                When(Opened)
+                When(Open)
                     .Then(InitializeState)
                     .Then(SetConfirmationCode)
                     .Publish(ConfirmationRequestedFactory)
-                    .Schedule(TransactionExpired, TransactionExpiredFactory)
+                    //.Schedule(TransactionExpired, TransactionExpiredFactory)
                     .TransitionTo(Pending)
                 );
 
             During(Pending,
-                When(ConfirmationRequested)
-                    .Then(ValidateConfirmationCode)
+                When(AttemptToConfirm)
+                .If(context => (context.Instance.ConfirmationCode == context.Data.Code), context => context.TransitionTo(Approved))
+                .If(context => (context.Instance.ConfirmationCode != context.Data.Code), context => context.TransitionTo(Forbidden))
                     .Then(context => SaveLog(context.Instance))
                     .Finalize(),
-                When(Canceled)
-                    .Then(CancelThisTransaction)
-                    .Then(context => SaveLog(context.Instance))
-                    .Finalize(),
-                When(TransactionExpired.Received)
-                    .Then(ExpireTransaction)
+                When(Cancel)
+                    .TransitionTo(Canceled)
                     .Then(context => SaveLog(context.Instance))
                     .Finalize()
+                //When(TransactionExpired.Received)
+                //    .Then(ExpireTransaction)
+                //    .Then(context => SaveLog(context.Instance))
+                //    .Finalize()
                 );
 
             SetCompletedWhenFinalized();
         }
 
         public State Pending { get; private set; }
-        //public State Approved { get; private set; }
-        //public State Finished { get; private set; }
+        public State Canceled { get; private set; }
+        public State Forbidden { get; private set; }
+        public State Approved { get; private set; }
 
-        public Schedule<TransferState, TransactionExpired> TransactionExpired { get; private set; }
+        //public Schedule<TransferState, TransactionExpired> TransactionExpired { get; private set; }
 
-        public Event<TransferMoney> Opened { get; private set; }
-        public Event<CancelTransaction> Canceled { get; private set; }
-        public Event<ConfirmTransaction> ConfirmationRequested { get; private set; }
+        public Event<TransferMoney> Open { get; private set; }
+        public Event<CancelTransaction> Cancel { get; private set; }
+        public Event<ConfirmTransaction> AttemptToConfirm { get; private set; }
 
         private void InitializeState(BehaviorContext<TransferState, TransferMoney> context)
         {
@@ -85,40 +87,40 @@ namespace Processor
             };
         }
 
-        private TransactionExpired TransactionExpiredFactory(ConsumeEventContext<TransferState, TransferMoney> context)
-        {
-            Console.WriteLine("Transaction expiretion was scheduled");
-            return new TransactionExpired
-            {
-                TransactionId = context.Instance.CorrelationId
-            };
-        }
+        //private TransactionExpired TransactionExpiredFactory(ConsumeEventContext<TransferState, TransferMoney> context)
+        //{
+        //    Console.WriteLine("Transaction expiretion was scheduled");
+        //    return new TransactionExpired
+        //    {
+        //        TransactionId = context.Instance.CorrelationId
+        //    };
+        //}
 
-        private void ValidateConfirmationCode(BehaviorContext<TransferState, ConfirmTransaction> context)
-        {
-            if (context.Instance.ConfirmationCode == context.Data.Code)
-            {
-                Console.WriteLine("Code is confirmed");
-                context.Instance.isConfirmed = true;
-            }
-            else
-            {
-                Console.WriteLine("Code is wrong");
-                context.Instance.isConfirmed = false;
-            }
-        }
+        //private void ValidateConfirmationCode(BehaviorContext<TransferState, ConfirmTransaction> context)
+        //{
+        //    if (context.Instance.ConfirmationCode == context.Data.Code)
+        //    {
+        //        Console.WriteLine("Code is confirmed");
+        //        context.Instance.isConfirmed = true;
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Code is wrong");
+        //        context.Instance.isConfirmed = false;
+        //    }
+        //}
 
-        private void CancelThisTransaction(BehaviorContext<TransferState, CancelTransaction> context)
-        {
-            Console.WriteLine("Transaction is canceled");
-            context.Instance.isCanceled = true;
-        }
+        //private void CancelThisTransaction(BehaviorContext<TransferState, CancelTransaction> context)
+        //{
+        //    Console.WriteLine("Transaction is canceled");
+        //    context.Instance.isCanceled = true;
+        //}
 
-        private void ExpireTransaction(BehaviorContext<TransferState, TransactionExpired> context)
-        {
-            Console.WriteLine("Transaction was expired");
-            context.Instance.isExpired = true;
-        }
+        //private void ExpireTransaction(BehaviorContext<TransferState, TransactionExpired> context)
+        //{
+        //    Console.WriteLine("Transaction was expired");
+        //    context.Instance.isExpired = true;
+        //}
 
         private void SaveLog(TransferState state)
         {
